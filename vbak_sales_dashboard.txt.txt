@@ -1,10 +1,54 @@
-REPORT z_vbak_sales_dashboard.
+*&---------------------------------------------------------------------*
+*& Report  ZSALES_DASHBOARD_REPORT
+*&---------------------------------------------------------------------*
+REPORT zsales_dashboard_report.
 
+* 1. TYPES declaration for VBAK (Sales Document: Header Data)
 TYPES: BEGIN OF ty_vbak,
          vbeln TYPE vbak-vbeln, " Sales Document
-         erdat TYPE vbak-erdat, " Creation Date
-         netwr TYPE vbak-netwr, " Net Value
+         erdat TYPE vbak-erdat, " Record Creation Date
+         ernam TYPE vbak-ernam, " Name of Person who Created the Object
+         audat TYPE vbak-audat, " Document Date
+         netwr TYPE vbak-netwr, " Net Value of the Sales Order
+         waerk TYPE vbak-waerk, " SD Document Currency
        END OF ty_vbak.
 
+* 2. Internal Table and Work Area declarations
 DATA: gt_vbak TYPE STANDARD TABLE OF ty_vbak,
       gs_vbak TYPE ty_vbak.
+      * 3. Selection Screen Layout
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  SELECT-OPTIONS: s_vbeln FOR gs_vbak-vbeln.
+SELECTION-SCREEN END OF BLOCK b1.
+* 4. Data Fetching Logic
+START-OF-SELECTION.
+
+  SELECT vbeln
+         erdat
+         ernam
+         audat
+         netwr
+         waerk
+    FROM vbak
+    INTO TABLE gt_vbak
+    WHERE vbeln IN s_vbeln.
+    
+    * 5. Displaying Data using ALV
+START-OF-SELECTION. " (Wait, your select query goes here!)
+...
+* ... (Your previous SELECT query) ...
+
+* Now, add this for the display:
+  TRY.
+      cl_salv_table=>factory(
+        IMPORTING
+          r_salv_table = DATA(lo_alv)
+        CHANGING
+          t_table      = gt_vbak ).
+
+      lo_alv->display( ).
+    CATCH cx_salv_msg.
+      MESSAGE 'Error displaying the ALV' TYPE 'E'.
+  ENDTRY.
+  else.
+  Message 'no sales data found for the given criteria. type 'i'.
