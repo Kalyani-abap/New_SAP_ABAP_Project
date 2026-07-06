@@ -27,6 +27,42 @@ DATA: gt_vbak TYPE STANDARD TABLE OF ty_vbak,
       gs_vbak TYPE ty_vbak,
       gt_vbap TYPE STANDARD TABLE OF ty_vbap,
       gs_vbap TYPE ty_vbap.
+      * ... (Top section: TYPES declarations and DATA tables remain exactly the same)
+
+*----------------------------------------------------------------------*
+* CLASS lcl_handle_events DEFINITION (Keep this exactly as it is)
+*----------------------------------------------------------------------*
+CLASS lcl_handle_events DEFINITION.
+  PUBLIC SECTION.
+    METHODS:
+      on_double_click FOR EVENT double_click OF cl_salv_events_table
+        IMPORTING row column.
+ENDCLASS.
+
+*----------------------------------------------------------------------*
+* CLASS lcl_handle_events IMPLEMENTATION <--- PASTE STEP 1 RIGHT HERE!
+*----------------------------------------------------------------------*
+CLASS lcl_handle_events IMPLEMENTATION.
+  METHOD on_double_click.
+    " 1. Read the specific row the user clicked from the primary grid
+    READ TABLE gt_vbak INTO gs_vbak INDEX row.
+    IF sy-subrc = 0.
+      
+      " 2. Set the SAP Parameter ID 'AUN' (Sales Document Number memory ID)
+      SET PARAMETER ID 'AUN' FIELD gs_vbak-vbeln.
+      
+      " 3. Call standard transaction VA03 and skip the initial entry screen
+      CALL TRANSACTION 'VA03' WITH AUTHORITY-CHECK AND SKIP FIRST SCREEN.
+      
+    ENDIF.
+  ENDMETHOD.
+ENDCLASS.
+
+*----------------------------------------------------------------------*
+* 4. Main Executive Logic (Keep this section exactly the same)
+*----------------------------------------------------------------------*
+START-OF-SELECTION.
+* ...
 
 * 3. Selection Screen Layout
 SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
