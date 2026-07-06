@@ -1,0 +1,10 @@
+REPORT z_vbak_sales_dashboard.
+
+TYPES: BEGIN OF ty_vbak,
+         vbeln TYPE vbak-vbeln, " Sales Document
+         erdat TYPE vbak-erdat, " Creation Date
+         netwr TYPE vbak-netwr, " Net Value
+       END OF ty_vbak.
+
+DATA: gt_vbak TYPE STANDARD TABLE OF ty_vbak,
+      gs_vbak TYPE ty_vbak.
