@@ -20,18 +20,38 @@ DATA: gt_vbak TYPE STANDARD TABLE OF ty_vbak,
 SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
   SELECT-OPTIONS: s_vbeln FOR gs_vbak-vbeln.
 SELECTION-SCREEN END OF BLOCK b1.
-* 4. Data Fetching Logic
+* 4. Data Fetching & Display Logic
 START-OF-SELECTION.
 
-  SELECT vbeln
-         erdat
-         ernam
-         audat
-         netwr
+  SELECT vbeln,
+         erdat,
+         ernam,
+         audat,
+         netwr,
          waerk
     FROM vbak
-    INTO TABLE gt_vbak
-    WHERE vbeln IN s_vbeln.
+    INTO TABLE @gt_vbak
+    WHERE vbeln IN @s_vbeln.
+
+  IF gt_vbak IS NOT INITIAL.
+    TRY.
+        cl_salv_table=>factory(
+          IMPORTING
+            r_salv_table = DATA(lo_alv)
+          CHANGING
+            t_table      = gt_vbak ).
+
+        " Get aggregations and add sum total to Net Value
+        DATA(lo_aggr) = lo_alv->get_aggregations( ).
+        lo_aggr->add_aggregation( columnname = 'NETWR' ).
+
+        lo_alv->display( ).
+      CATCH cx_salv_msg.
+        MESSAGE 'Error displaying the ALV' TYPE 'E'.
+    ENDTRY.
+  ELSE.
+    MESSAGE 'No sales data found for the given criteria.' TYPE 'I'.
+  ENDIF.
     
     * 5. Displaying Data using ALV
 START-OF-SELECTION. " (Wait, your select query goes here!)
